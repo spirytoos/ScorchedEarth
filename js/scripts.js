@@ -32,6 +32,8 @@
 		
 		this.trajectory=paper.path();
 		
+		this.isActive=false;
+		
 		return this;
 	}
 	
@@ -70,8 +72,23 @@
 		
 		this.paper.canvas.onmousemove=function(e) {
 		
-			t.trajectory.attr({path:"M"+t.startX+","+t.startY+"L"+e.pageX+","+e.pageY});
+			var rect = t.paper.canvas.getBoundingClientRect();
+			//t.trajectory.attr({path:"M"+t.startX+","+t.startY+"l"+(e.pageX-t.startX-rect.left-scrollX)+","+(e.pageY-t.startY-rect.top-scrollY)});
+			t.trajectory.attr({path:"M"+t.startX+","+t.startY+"L"+(e.pageX-rect.left-scrollX)+","+(e.pageY-rect.top-scrollY)});
+		};
 		
+		this.isActive=true;
+		
+		this.paper.canvas.onclick=function(e) {
+		
+			if(t.isActive)
+			{
+				// get mouse distance from center of tank
+				
+				var rect = t.paper.canvas.getBoundingClientRect();
+				
+				t.shoot(e.pageX-rect.left-scrollX,e.pageY-rect.top-scrollY);
+			}
 		};
 	};
 	
@@ -79,6 +96,8 @@
 	
 		this.trajectory.hide();
 		this.circle.attr("fill", "red");
+		
+		this.isActive=false;
 		
 	};
 	
@@ -88,6 +107,120 @@
 		
 	};
 	
+	Tank.prototype.shoot=function(horiz,vert) {
+		
+		if(this.isActive)
+		{
+			// calculate trajectory
+			
+			var trajectory=[];
+			var a=0,y=this.startY,x=this.startX,acceleration=0;
+			/*
+			while(a<100)
+			{
+				//y+=acceleration;
+
+				//y+=a*9.8;
+				
+				y=-vert*a+0.5*9.8*Math.pow(a,2);
+				
+				trajectory.push({"x":x,"y":y});
+				
+				x+=horiz;
+				acceleration+=9.8;
+				a++;
+			}
+			
+			*/
+			a=1;
+			trajectory=[["M",this.startX,this.startY]];
+			
+			vert-=this.startY;
+			
+			while(a<100)
+			{
+				//y+=acceleration;
+
+				//y+=a*9.8;
+				
+				y=vert*a+0.5*9.8*Math.pow(a,2);
+				
+				trajectory.push(["L",x+this.startX,y+this.startY]);
+				
+				x+=horiz;
+				acceleration+=9.8;
+				a++;
+			}
+			console.log(trajectory.toString());
+			this.drawTrajectory(trajectory);
+		}
+		
+		return false;
+	};
+	
+	Tank.prototype.drawTrajectory=function(trajectory) {
+		
+		var penPosition={x:this.startX,y:this.startY};
+		var trajectoryPoint;
+		var trajectoryPath;
+		
+		trajectoryPoint=this.paper.circle(this.startX,this.startY,5,5);	
+		
+		var arr=Raphael.path2curve(trajectory);
+		var normalized_path = arr.toString();
+		//var normalized_path = "M,200,550,L,200,0,L,217,56.9,L,234,123.6,L,251,200.1,L,268,286.4,L,285,382.5";
+		
+		
+		//normalized_path="M,"+this.startX+","+this.startY+",L,-400,0,L,-404,-5.1,L,-408,-0.3999999999999986,L,-412,14.100000000000001";
+		
+var path1 = this.paper.path(normalized_path).attr({stroke: "red", "stroke-width":1});
+
+		trajectoryPoint.attr("fill", "red");
+
+		/*for(var i=0;i<trajectory.length;i++)
+		{
+			//console.log(this.penPosition.x+"    "+penPosition.y);
+				
+			//var trajectoryPoint=this.paper.circle(this.startX+trajectory[i]["x"],this.startY+trajectory[i]["y"],1,1);	
+		//	trajectoryPath=this.paper.path("M"+penPosition.x+" "+penPosition.y+"L"+(this.startX+trajectory[i]["x"])+" "+(this.startY+trajectory[i]["y"]));	
+			//trajectoryPoint.attr("fill", "blue");
+			
+				trajectoryPath=this.paper.path("M"+penPosition.x+" "+penPosition.y+"L"+(this.startX+trajectory[i]["x"])+" "+(this.startY+trajectory[i]["y"]));	
+			trajectoryPoint.attr("fill", "blue");
+			
+			
+			penPosition.x=this.startX+trajectory[i]["x"];
+			penPosition.y=this.startY+trajectory[i]["y"];
+			console.log(trajectory[i]["x"]);
+		}	
+		
+		// animate bullet 
+		
+		(function() {
+			
+			var step=0;
+			
+			var animation=setInterval(function animateTo()
+			{
+				if(step<trajectory.length)
+				{	
+					animation=trajectoryPoint.animate({cx: trajectory[step]["x"], cy:trajectory[step]["y"]}, 1000, "linear");
+					step++;
+				}
+				else
+				{
+					clearInterval(animation);
+					return;
+				}
+			},1000);
+			
+			
+			
+			//trajectoryPoint.animate({fill: "blue", transform: "s2.0"}, 1000, "linear");; 
+		})();
+			
+			*/	
+	};
 	
 	// main game framework code
 	
