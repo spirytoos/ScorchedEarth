@@ -213,8 +213,8 @@
 		
 		var speed=[];
 		
-		var minSpeed=10000; // 1sec
-		var maxSpeed=5000; // 0.01sec
+		var minSpeed=100; // 1sec
+		var maxSpeed=1; // 0.01sec
 		
 		for(var i=0;i<=stepsUp;i++)
 		{
@@ -258,10 +258,34 @@
 		
 		//console.log(Math.max.apply(null,[10,20,30,22,33,12,1]));
 				
-		(function() {
+		var step=0;
+
+		(function animateBullet(s) {
 		
-			var step=0;
+			console.log(speed);
+			setTimeout(function() {
+			
+				var x=Raphael.getPointAtLength(normalized_path,step).x;
+				var y=Raphael.getPointAtLength(normalized_path,step).y;
+					
+				if(step<270)
+				{	
+					trajectoryPoint.transform("T"+x+","+y);
+					//animation=trajectoryPoint.animate({cx: trajectory[step]["x"], cy:trajectory[step]["y"]}, 1000, "linear");
+					step++;
+				}			
+				else 
+					return;
+				
+				animateBullet(s);
+			}, (typeof s==="undefined" ? 1 : s[step]));
+		
+		})(speed);
+		
+		
+		/*
 			(function() {
+			var step=0;
 			
 			var animation=setInterval(function animateTo()
 			{
@@ -269,7 +293,7 @@
 				var x=Raphael.getPointAtLength(normalized_path,step).x;
 				var y=Raphael.getPointAtLength(normalized_path,step).y;
 				
-				if(step<700)
+				if(step<70)
 				{	
 					trajectoryPoint.transform("T"+x+","+y);
 					//animation=trajectoryPoint.animate({cx: trajectory[step]["x"], cy:trajectory[step]["y"]}, 1000, "linear");
@@ -283,9 +307,9 @@
 			},speed[step]);
 			
 				//trajectoryPoint.animate({fill: "blue", transform: "s2.0"}, 1000, "linear");; 
-			})();
+		
 		})(speed);
-			
+			*/
 		
 	};
 	
