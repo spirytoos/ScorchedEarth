@@ -78,7 +78,7 @@
 		//	console.log(e.pageX,e.pageY);
 			var rect = t.paper.canvas.getBoundingClientRect();
 			//t.trajectory.attr({path:"M"+t.startX+","+t.startY+"l"+(e.pageX-t.startX-rect.left-scrollX)+","+(e.pageY-t.startY-rect.top-scrollY)});
-			t.trajectory.attr({path:"M"+t.startX+","+t.startY+"L"+(e.pageX-rect.left-scrollX)+","+(e.pageY-rect.top-scrollY), "clip-rect": ""+t.startX+","+t.startY+"20 20"});
+			t.trajectory.attr({path:"M"+t.startX+","+t.startY+"L"+(e.pageX-rect.left-scrollX)+","+(e.pageY-rect.top-scrollY), "clip-rect": (t.startX-30)+" "+(t.startY-20)+" 50 20"});
 			//t.paper.path("M"+t.startX+","+t.startY+"l"+(e.pageX-rect.left-scrollX-t.startX)+","+(e.pageY-rect.top-scrollY-t.startY));
 			
 		};
