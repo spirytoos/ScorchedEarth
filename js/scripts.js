@@ -50,14 +50,16 @@
 		
 		// draw tank here
 		
-		this.circle=this.paper.circle(this.startX,this.startY,20,20);	
-		this.circle.attr("fill", "red");
+		//this.circle=this.paper.circle(this.startX,this.startY,20,20);	
+		this.circle=this.paper.image("images/tank.png",this.startX-20,this.startY-5,40,21);	
+				
+		//this.circle.attr("fill", "red");
 
 		var tank=this;
 		
 		$(this.circle.node).click(function(e) {
 		
-			console.log(tank.startX);
+			//console.log(tank.startX);
 		
 		});
 	};
@@ -72,10 +74,13 @@
 		
 		this.paper.canvas.onmousemove=function(e) {
 		
+	//	if(t.paper.getElementByPoint(e.pageX,e.pageY)!=null)
+		//	console.log(e.pageX,e.pageY);
 			var rect = t.paper.canvas.getBoundingClientRect();
 			//t.trajectory.attr({path:"M"+t.startX+","+t.startY+"l"+(e.pageX-t.startX-rect.left-scrollX)+","+(e.pageY-t.startY-rect.top-scrollY)});
-			//t.trajectory.attr({path:"M"+t.startX+","+t.startY+"L"+(e.pageX-rect.left-scrollX)+","+(e.pageY-rect.top-scrollY)});
-			t.trajectory.attr({path:"M"+t.startX+","+t.startY+"l"+(e.pageX-rect.left-scrollX-t.startX)+","+(e.pageY-rect.top-scrollY-t.startY)});
+			t.trajectory.attr({path:"M"+t.startX+","+t.startY+"L"+(e.pageX-20-rect.left-scrollX)+","+(e.pageY-20-rect.top-scrollY)});
+			//t.paper.path("M"+t.startX+","+t.startY+"l"+(e.pageX-rect.left-scrollX-t.startX)+","+(e.pageY-rect.top-scrollY-t.startY));
+			
 		};
 		
 		this.isActive=true;
@@ -146,10 +151,20 @@
 			{				
 				y=vert*a+0.5*9.8*Math.pow(a,2)+this.startY;
 				
+				// check if the path hit any obstacle
+				
+				
+				//var x=Raphael.getPointAtLength(normalized_path,step).x;
+				//var y=Raphael.getPointAtLength(normalized_path,step).y;
+					
+				
 				trajectory.push([x,y]);
 				
 				x+=horiz;
 				a++;
+				
+				//console.log(this.paper.getElementByPoint(300,300));
+				//console.log(x+100,y+100);
 				
 				// later when animating the bullet we need to slow it down as it goes up and speed up as it goes down. To do this we will need to interpolate values between beginning/highest and highest lowest. To do that we need to know the highest point so in here as we calculate gravity we also keep track of highest point so dont have to do the same work later
 				
@@ -157,12 +172,13 @@
 				//console.log(trajectory[highestPoint][1]);
 			}
 			
-			console.log(trajectory.toString());
+			//console.log(trajectory.toString());
 			this.drawTrajectory(trajectory, highestPoint);
 		}
 		
 		return false;
 	};
+	
 	
 	Tank.prototype.drawTrajectory=function(trajectory, highestPoint) {
 		
@@ -170,36 +186,188 @@
 		var trajectoryPoint;
 		var trajectoryPath;
 		
-		trajectoryPoint=this.paper.circle(this.startX,this.startY,5,5);	
+		// convert points we calculated into actual path
 		
 		var arr=Raphael.path2curve(trajectory);
+		
+		// and make it into a string so we can pass it further to different methods
+		
 		var normalized_path = arr.toString();
+
 		//var normalized_path = "m,10,10,l,200,0,L,217,56.9,L,234,123.6,L,251,200.1,L,268,286.4,L,285,382.5";
-		
-		
 		//normalized_path="M,"+this.startX+","+this.startY+",L,-400,0,L,-404,-5.1,L,-408,-0.3999999999999986,L,-412,14.100000000000001";
-		
-		var path1 = this.paper.path(normalized_path).attr({stroke: "red", "stroke-width":1});
 
-		trajectoryPoint.attr("fill", "red");
-
+		// path might be very long so we need to cut it off as ssoon as we detect it collides with something
 		
-		var lowestPoint=trajectory.length-highestPoint;
+		var path1;
+		var cutOff=false;
 		
-		for(var i=lowestPoint;i>=0;i--)
+		var l=Raphael.getTotalLength(normalized_path);
+		var pointOnPath=[];
+		
+		for(var i=0;i<l;i++)
 		{
-			//speed.push(i/lowestPoint*minSpeed);
+			var point=Raphael.getPointAtLength(normalized_path,i);
+			var pointX=point.x;
+			var pointY=point.y;
+			
+			//var el=this.paper.getElementByPoint(pointX+101,pointY+101);
+			var el=document.elementFromPoint(pointX+101,pointY+101);
+
+			pointOnPath.push([pointX,pointY]);
+		
+			//console.log(Raphael.getPointAtLength(normalized_path,i).y);
+			
+			if((el!==null && el.nodeName!=="path" && el.nodeName!=="svg" && el!==this.circle[0]) || pointX>this.paper.width  || pointY>this.paper.height)
+			{
+				normalized_path = Raphael.getSubpath(normalized_path, 0, i);
+				
+				l=Raphael.getTotalLength(normalized_path);
+				
+				path1 = this.paper.path(normalized_path).attr({stroke: "red", "stroke-width":1});
+				
+				cutOff=true;
+				
+				break;
+			}
 		}
 		
-		// convert quickly
+		if(!cutOff) path1=this.paper.path(normalized_path).attr({stroke: "ffcccc", "stroke-width":1});
 		
+		// animate bullet 
+		
+		trajectoryPoint=this.paper.circle(0,0,5,5);
+		
+		//console.log(Math.max.apply(null,[10,20,30,22,33,12,1]));
+				
+		var step=0;
+		var t=this;
+		
+		(function animateBullet() {
+		
+		//	console.log(speed);
+			var animation=setInterval(function() {
+			
+				//var x=Raphael.getPointAtLength(normalized_path,step).x;
+				//var y=Raphael.getPointAtLength(normalized_path,step).y;
+					
+				//console.log(t.paper.getElementByPoint(x+scrollX+t.startX,y+scrollY+t.startY));
+				//console.log(x,y);
+				//console.log(x+scrollX+100+t.startX,y+scrollY+100+t.startY);
+				//console.log(t.paper.getElementByPoint(400,400));
+					
+				if(step<l)
+				{	
+					trajectoryPoint.transform("t"+pointOnPath[step][0]+","+pointOnPath[step][1]);
+					//animation=trajectoryPoint.animate({cx: trajectory[step]["x"], cy:trajectory[step]["y"]}, 1000, "linear");
+					step+=3;
+				}			
+				else 
+				{
+					trajectoryPoint.remove();
+					path1.remove();
+					
+					clearInterval(animation);
+					return;
+				}
+				
+			},0);
+		
+		})();
+		
+		
+		/*
+			(function() {
+			var step=0;
+			
+			var animation=setInterval(function animateTo()
+			{
+			console.log(speed[step]);
+				var x=Raphael.getPointAtLength(normalized_path,step).x;
+				var y=Raphael.getPointAtLength(normalized_path,step).y;
+				
+				if(step<70)
+				{	
+					trajectoryPoint.transform("T"+x+","+y);
+					//animation=trajectoryPoint.animate({cx: trajectory[step]["x"], cy:trajectory[step]["y"]}, 1000, "linear");
+					step++;
+				}
+				else
+				{
+					clearInterval(animation);
+					return;
+				}
+			},speed[step]);
+			
+				//trajectoryPoint.animate({fill: "blue", transform: "s2.0"}, 1000, "linear");; 
+		
+		})(speed);
+			*/
+		
+	};
+	
+	
+	
+	Tank.prototype.drawTrajectory_old=function(trajectory, highestPoint) {
+		
+		var penPosition={x:this.startX,y:this.startY};
+		var trajectoryPoint;
+		var trajectoryPath;
+		
+		// convert points we calculated into actual path
+		
+		var arr=Raphael.path2curve(trajectory);
+		
+		// and make it into a string so we can pass it further to different methods
+		
+		var normalized_path = arr.toString();
+
+		//var normalized_path = "m,10,10,l,200,0,L,217,56.9,L,234,123.6,L,251,200.1,L,268,286.4,L,285,382.5";
+		//normalized_path="M,"+this.startX+","+this.startY+",L,-400,0,L,-404,-5.1,L,-408,-0.3999999999999986,L,-412,14.100000000000001";
+
+		// path might be very long so we need to cut it off as ssoon as we detect it collides with something
+		
+		var path1;
+		var cutOff=false;
+		
+		var l=Raphael.getTotalLength(normalized_path);
+		var pointOnPath=[];
+		
+		for(var i=0;i<l;i++)
+		{
+			var point=Raphael.getPointAtLength(normalized_path,i);
+			var pointX=point.x;
+			var pointY=point.y;
+			
+			var el=this.paper.getElementsByPoint(pointX,pointY);
+
+			pointOnPath.push([pointX,pointY]);
+		
+			//console.log(Raphael.getPointAtLength(normalized_path,i).y);
+			
+			if((el.length && el[0]!==this.circle &&  el[0].type!=="path") || pointX>this.paper.width  || pointY>this.paper.height)
+			{
+				normalized_path = Raphael.getSubpath(normalized_path, 0, i);
+				
+				l=Raphael.getTotalLength(normalized_path);
+				
+				path1 = this.paper.path(normalized_path).attr({stroke: "red", "stroke-width":1});
+				
+				cutOff=true;
+				
+				break;
+			}
+		}
+		
+		if(!cutOff) path1=this.paper.path(normalized_path).attr({stroke: "red", "stroke-width":1});
 		
 		// get highest point
+
 		highestPoint=this.startY;
 		
 		var stepsUp=0;
 		
-		for(stepsUp=0;stepsUp<Raphael.getTotalLength(normalized_path);stepsUp++)
+		for(;stepsUp<l;stepsUp++)
 		{
 			if(highestPoint>path1.getPointAtLength(stepsUp).y)
 				highestPoint=path1.getPointAtLength(stepsUp).y;
@@ -213,18 +381,26 @@
 		
 		var speed=[];
 		
-		var minSpeed=100; // 1sec
+		var minSpeed=30; // 1sec
 		var maxSpeed=1; // 0.01sec
 		
 		for(var i=0;i<=stepsUp;i++)
 		{
-			speed.push(i/stepsUp*minSpeed);
+			//speed.push(i/stepsUp*minSpeed);
+			speed.push(0);
 		}
 		
+		var tillEnd=l-stepsUp;
 		
+		for(var i=tillEnd;i>0;i--)
+		{
+			//speed.push(i/tillEnd*minSpeed);
+			
+			speed.push(0);
+		}
 		
-		console.log("ddddd");
-
+		//console.log(speed);
+		
 		/*
 		//for(var i=0;i<normalized_path.length;i++)
 		for(var i=0;i<100;i++)
@@ -259,23 +435,33 @@
 		//console.log(Math.max.apply(null,[10,20,30,22,33,12,1]));
 				
 		var step=0;
-
+		var t=this;
+		
 		(function animateBullet(s) {
 		
-			console.log(speed);
+		//	console.log(speed);
 			setTimeout(function() {
 			
-				var x=Raphael.getPointAtLength(normalized_path,step).x;
-				var y=Raphael.getPointAtLength(normalized_path,step).y;
+				//var x=Raphael.getPointAtLength(normalized_path,step).x;
+				//var y=Raphael.getPointAtLength(normalized_path,step).y;
 					
-				if(step<270)
+				//console.log(t.paper.getElementByPoint(x+scrollX+t.startX,y+scrollY+t.startY));
+				//console.log(x,y);
+				//console.log(x+scrollX+100+t.startX,y+scrollY+100+t.startY);
+				//console.log(t.paper.getElementByPoint(400,400));
+					
+				if(step<s.length)
 				{	
-					trajectoryPoint.transform("T"+x+","+y);
+					trajectoryPoint.transform("t"+pointOnPath[step][0]+","+pointOnPath[step][1]);
 					//animation=trajectoryPoint.animate({cx: trajectory[step]["x"], cy:trajectory[step]["y"]}, 1000, "linear");
-					step++;
+					step+=2;
 				}			
 				else 
+				{
+					trajectoryPoint.remove();
+					path1.remove();
 					return;
+				}
 				
 				animateBullet(s);
 			}, (typeof s==="undefined" ? 1 : s[step]));
