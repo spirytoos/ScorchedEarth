@@ -72,13 +72,20 @@
 		
 		this.trajectory.show();
 		
+		
+		$(t.trajectory.node).parent().prepend('<mask id="Mask" maskUnits="objectBoundingBox"          x="0" y="0" width="20" height="20">      <rect x="0" y="20" width="0" height="20" "  />    </mask>');
 		this.paper.canvas.onmousemove=function(e) {
 		
 	//	if(t.paper.getElementByPoint(e.pageX,e.pageY)!=null)
 		//	console.log(e.pageX,e.pageY);
 			var rect = t.paper.canvas.getBoundingClientRect();
 			//t.trajectory.attr({path:"M"+t.startX+","+t.startY+"l"+(e.pageX-t.startX-rect.left-scrollX)+","+(e.pageY-t.startY-rect.top-scrollY)});
-			t.trajectory.attr({path:"M"+t.startX+","+t.startY+"L"+(e.pageX-rect.left-scrollX)+","+(e.pageY-rect.top-scrollY), "clip-rect": (t.startX-30)+" "+(t.startY-20)+" 50 20"});
+			//t.trajectory.attr({path:"M"+t.startX+","+t.startY+"L"+(e.pageX-rect.left-scrollX)+","+(e.pageY-rect.top-scrollY), "clip-rect": (t.startX-30)+" "+(t.startY-20)+" 50 20"});
+			t.trajectory.attr({path:"M"+t.startX+","+t.startY+"L"+(e.pageX-rect.left-scrollX)+","+(e.pageY-rect.top-scrollY)});
+			t.trajectory.node.setAttribute("mask","url(#Mask)");
+			
+			
+			//t.paper.attr({"fill": "url(http://4.bp.blogspot.com/-gqd6i4K8I1I/UBLYjrsiRXI/AAAAAAAAAJA/0eqdIoY0zI4/s640/nellis-puli.jpg)"});
 			//t.paper.path("M"+t.startX+","+t.startY+"l"+(e.pageX-rect.left-scrollX-t.startX)+","+(e.pageY-rect.top-scrollY-t.startY));
 			
 		};
