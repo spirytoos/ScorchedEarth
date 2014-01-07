@@ -70,10 +70,36 @@
 		
 		var t=this;
 		
+		//$(t.trajectory.node).parent().find("defs").after('   <mask maskUnits="userSpaceOnUse" maskContentUnits="userSpaceOnUse"  id="mask2" x="0" y="0" width="444" height="444" >     <circle cx="0" cy="0" r="444" fill="white"></circle>    </mask>  ');
+		
+		//$("body").html($("body").html());
+		
+		var elem = document.createElementNS("http://www.w3.org/2000/svg", 'mask'); //Create a path in SVG's namespace
+		var circle = document.createElementNS("http://www.w3.org/2000/svg", 'circle'); //Create a path in SVG's namespace
+
+		circle.setAttribute("cx",t.startX);
+		circle.setAttribute("cy",t.startY+10);
+		circle.setAttribute("r","25");
+		circle.setAttribute("fill","white");
+
+		elem.setAttribute("maskUnits","userSpaceOnUse");
+		elem.setAttribute("maskContentUnits","userSpaceOnUse");
+		elem.setAttribute("id","mask"+t.startX+"x"+t.startY);
+		elem.setAttribute("x",t.startX-50);
+		elem.setAttribute("y",t.startY-20);
+		elem.setAttribute("width","100");
+		elem.setAttribute("height","20");
+
+		elem.appendChild(circle);
+				
+
+
+		document.getElementsByTagName("svg")[0].appendChild(elem);
+t.trajectory.node.setAttribute("mask","url(#mask"+t.startX+"x"+t.startY+")");
+		
+		
+		
 		this.trajectory.show();
-		
-		
-		$(t.trajectory.node).parent().prepend('<mask id="Mask" maskUnits="objectBoundingBox"          x="0" y="0" width="20" height="20">      <rect x="0" y="20" width="0" height="20" "  />    </mask>');
 		this.paper.canvas.onmousemove=function(e) {
 		
 	//	if(t.paper.getElementByPoint(e.pageX,e.pageY)!=null)
@@ -82,7 +108,7 @@
 			//t.trajectory.attr({path:"M"+t.startX+","+t.startY+"l"+(e.pageX-t.startX-rect.left-scrollX)+","+(e.pageY-t.startY-rect.top-scrollY)});
 			//t.trajectory.attr({path:"M"+t.startX+","+t.startY+"L"+(e.pageX-rect.left-scrollX)+","+(e.pageY-rect.top-scrollY), "clip-rect": (t.startX-30)+" "+(t.startY-20)+" 50 20"});
 			t.trajectory.attr({path:"M"+t.startX+","+t.startY+"L"+(e.pageX-rect.left-scrollX)+","+(e.pageY-rect.top-scrollY)});
-			t.trajectory.node.setAttribute("mask","url(#Mask)");
+		
 			
 			
 			//t.paper.attr({"fill": "url(http://4.bp.blogspot.com/-gqd6i4K8I1I/UBLYjrsiRXI/AAAAAAAAAJA/0eqdIoY0zI4/s640/nellis-puli.jpg)"});
