@@ -22,6 +22,8 @@
 	
 	function Tank(paper,startX,startY,endX,endY) {
 	
+		// constructor
+		
 		this.startX=startX;
 		this.startY=startY;
 		
@@ -30,9 +32,39 @@
 		
 		this.paper=paper;
 		
+		// keeps track of path over the bullet will go
+		
 		this.trajectory=paper.path();
 		
+		// flag for currently selected tank 
+		
 		this.isActive=false;
+			
+		// each tank will have gun that will rotate accrording to where the mouse is positioned at any time. This gun needs to be only certain length so it looks like a gun so the line from centre of tank to the mouse needs to be clipped and we use mask to show only short part of it
+		// this has to be done manually as Raphael dosent support this fancy stuff. Each tank needs its own mask
+		
+		
+		var elem = document.createElementNS("http://www.w3.org/2000/svg", 'mask'); //Create a path in SVG's namespace
+		var circle = document.createElementNS("http://www.w3.org/2000/svg", 'circle'); //Create a path in SVG's namespace
+
+		circle.setAttribute("cx",this.startX);
+		circle.setAttribute("cy",this.startY+10);
+		circle.setAttribute("r","25");
+		circle.setAttribute("fill","white");
+
+		elem.setAttribute("maskUnits","userSpaceOnUse");
+		elem.setAttribute("maskContentUnits","userSpaceOnUse");
+		elem.setAttribute("id","mask"+this.startX+"x"+this.startY);
+		elem.setAttribute("x",this.startX-50);
+		elem.setAttribute("y",this.startY-20);
+		elem.setAttribute("width","100");
+		elem.setAttribute("height","20");
+
+		elem.appendChild(circle);
+	
+		document.getElementsByTagName("svg")[0].appendChild(elem);
+		
+		this.trajectory.node.setAttribute("mask","url(#mask"+this.startX+"x"+this.startY+")");
 		
 		return this;
 	}
@@ -66,54 +98,14 @@
 	
 	Tank.prototype.activate=function() {
 	
-		this.circle.attr("fill", "green");
-		
 		var t=this;
-		
-		//$(t.trajectory.node).parent().find("defs").after('   <mask maskUnits="userSpaceOnUse" maskContentUnits="userSpaceOnUse"  id="mask2" x="0" y="0" width="444" height="444" >     <circle cx="0" cy="0" r="444" fill="white"></circle>    </mask>  ');
-		
-		//$("body").html($("body").html());
-		
-		var elem = document.createElementNS("http://www.w3.org/2000/svg", 'mask'); //Create a path in SVG's namespace
-		var circle = document.createElementNS("http://www.w3.org/2000/svg", 'circle'); //Create a path in SVG's namespace
-
-		circle.setAttribute("cx",t.startX);
-		circle.setAttribute("cy",t.startY+10);
-		circle.setAttribute("r","25");
-		circle.setAttribute("fill","white");
-
-		elem.setAttribute("maskUnits","userSpaceOnUse");
-		elem.setAttribute("maskContentUnits","userSpaceOnUse");
-		elem.setAttribute("id","mask"+t.startX+"x"+t.startY);
-		elem.setAttribute("x",t.startX-50);
-		elem.setAttribute("y",t.startY-20);
-		elem.setAttribute("width","100");
-		elem.setAttribute("height","20");
-
-		elem.appendChild(circle);
-				
-
-
-		document.getElementsByTagName("svg")[0].appendChild(elem);
-t.trajectory.node.setAttribute("mask","url(#mask"+t.startX+"x"+t.startY+")");
-		
-		
 		
 		this.trajectory.show();
 		this.paper.canvas.onmousemove=function(e) {
-		
-	//	if(t.paper.getElementByPoint(e.pageX,e.pageY)!=null)
-		//	console.log(e.pageX,e.pageY);
+			
 			var rect = t.paper.canvas.getBoundingClientRect();
-			//t.trajectory.attr({path:"M"+t.startX+","+t.startY+"l"+(e.pageX-t.startX-rect.left-scrollX)+","+(e.pageY-t.startY-rect.top-scrollY)});
-			//t.trajectory.attr({path:"M"+t.startX+","+t.startY+"L"+(e.pageX-rect.left-scrollX)+","+(e.pageY-rect.top-scrollY), "clip-rect": (t.startX-30)+" "+(t.startY-20)+" 50 20"});
-			t.trajectory.attr({path:"M"+t.startX+","+t.startY+"L"+(e.pageX-rect.left-scrollX)+","+(e.pageY-rect.top-scrollY)});
 		
-			
-			
-			//t.paper.attr({"fill": "url(http://4.bp.blogspot.com/-gqd6i4K8I1I/UBLYjrsiRXI/AAAAAAAAAJA/0eqdIoY0zI4/s640/nellis-puli.jpg)"});
-			//t.paper.path("M"+t.startX+","+t.startY+"l"+(e.pageX-rect.left-scrollX-t.startX)+","+(e.pageY-rect.top-scrollY-t.startY));
-			
+			t.trajectory.attr({path:"M"+t.startX+","+t.startY+"L"+(e.pageX-rect.left-scrollX)+","+(e.pageY-rect.top-scrollY)});
 		};
 		
 		this.isActive=true;
@@ -155,25 +147,8 @@ t.trajectory.node.setAttribute("mask","url(#mask"+t.startX+"x"+t.startY+")");
 			// calculate trajectory
 			
 			var trajectory=[];
-			var a=0,y=this.startY,x=this.startX+horiz,acceleration=0;
-			/*
-			while(a<100)
-			{
-				//y+=acceleration;
-
-				//y+=a*9.8;
-				
-				y=-vert*a+0.5*9.8*Math.pow(a,2);
-				
-				trajectory.push({"x":x,"y":y});
-				
-				x+=horiz;
-				acceleration+=9.8;
-				a++;
-			}
-			
-			*/
-			a=1;
+			var a=1,y=this.startY,x=this.startX+horiz,acceleration=0;
+		
 			trajectory=[["M"+this.startX,this.startY,"R"]];
 			
 			//vert-=this.startY;
@@ -186,27 +161,13 @@ t.trajectory.node.setAttribute("mask","url(#mask"+t.startX+"x"+t.startY+")");
 				
 				// check if the path hit any obstacle
 				
-				
-				//var x=Raphael.getPointAtLength(normalized_path,step).x;
-				//var y=Raphael.getPointAtLength(normalized_path,step).y;
-					
-				
 				trajectory.push([x,y]);
 				
 				x+=horiz;
 				a++;
-				
-				//console.log(this.paper.getElementByPoint(300,300));
-				//console.log(x+100,y+100);
-				
-				// later when animating the bullet we need to slow it down as it goes up and speed up as it goes down. To do this we will need to interpolate values between beginning/highest and highest lowest. To do that we need to know the highest point so in here as we calculate gravity we also keep track of highest point so dont have to do the same work later
-				
-				if(y<trajectory[highestPoint][1])	highestPoint=a;
-				//console.log(trajectory[highestPoint][1]);
 			}
 			
-			//console.log(trajectory.toString());
-			this.drawTrajectory(trajectory, highestPoint);
+			this.drawTrajectory(trajectory);
 		}
 		
 		return false;
